@@ -1,0 +1,296 @@
+{
+    "$schema": "https://raw.githubusercontent.com/itsparser/scaf/main/schema/template.json",
+    "version": "1.0.0",
+    "name": "React Application",
+    "description": "A modern React application template with TypeScript, testing, and various features",
+    "author": "Vasanth <itsparser@gmail.com>",
+    "language": "typescript",
+    "tags": ["react", "typescript", "web", "frontend"],
+    "extends": [],
+    "args": [
+        {
+            "name": "Project Name",
+            "key": "project_name",
+            "description": "Name of your project",
+            "type": "string",
+            "default": "my-react-app",
+            "required": true,
+            "pattern": "^[a-z0-9-]+$"
+        },
+        {
+            "name": "Package Manager",
+            "key": "package_manager",
+            "description": "Choose your package manager",
+            "type": "enum",
+            "default": "npm",
+            "required": true,
+            "values": [
+                {
+                    "value": "npm",
+                    "description": "NPM (Node Package Manager)"
+                },
+                {
+                    "value": "yarn",
+                    "description": "Yarn"
+                },
+                {
+                    "value": "pnpm",
+                    "description": "PNPM (Performant NPM)"
+                }
+            ]
+        },
+        {
+            "name": "Features",
+            "key": "features",
+            "description": "Select additional features",
+            "type": "enum",
+            "multiple": true,
+            "delimiter": ",",
+            "default": "router,state-management",
+            "required": true,
+            "values": [
+                {
+                    "value": "router",
+                    "description": "React Router for navigation"
+                },
+                {
+                    "value": "state-management",
+                    "description": "Redux Toolkit for state management"
+                },
+                {
+                    "value": "styling",
+                    "description": "Tailwind CSS for styling"
+                },
+                {
+                    "value": "testing",
+                    "description": "Testing setup with Jest and RTL"
+                },
+                {
+                    "value": "ci-cd",
+                    "description": "GitHub Actions CI/CD setup"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "id": "create-project",
+            "description": "Creating React project with Vite",
+            "type": "command",
+            "path": "./",
+            "content": "{{ package_manager }} create vite {{ project_name }} --template react-ts"
+        },
+        {
+            "id": "setup-directory",
+            "description": "Setting up project directory",
+            "type": "command",
+            "path": "./",
+            "content": "cd {{ project_name }}"
+        },
+        {
+            "id": "install-dependencies",
+            "description": "Installing base dependencies",
+            "type": "dependencies",
+            "path": "./{{ project_name }}",
+            "package_manager": "{{ package_manager }}",
+            "dependencies": [
+                "react",
+                "react-dom",
+                "@types/react",
+                "@types/react-dom"
+            ],
+            "dev_dependencies": [
+                "typescript",
+                "@typescript-eslint/eslint-plugin",
+                "@typescript-eslint/parser",
+                "eslint",
+                "prettier"
+            ]
+        },
+        {
+            "id": "setup-router",
+            "description": "Setting up React Router",
+            "type": "dependencies",
+            "path": "./{{ project_name }}",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "features",
+                        "operator": "in",
+                        "value": "router"
+                    }
+                ]
+            },
+            "dependencies": ["react-router-dom", "@types/react-router-dom"]
+        },
+        {
+            "id": "setup-redux",
+            "description": "Setting up Redux Toolkit",
+            "type": "dependencies",
+            "path": "./{{ project_name }}",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "features",
+                        "operator": "in",
+                        "value": "state-management"
+                    }
+                ]
+            },
+            "dependencies": [
+                "@reduxjs/toolkit",
+                "react-redux",
+                "@types/react-redux"
+            ]
+        },
+        {
+            "id": "setup-tailwind",
+            "description": "Setting up Tailwind CSS",
+            "type": "dependencies",
+            "path": "./{{ project_name }}",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "features",
+                        "operator": "in",
+                        "value": "styling"
+                    }
+                ]
+            },
+            "dependencies": ["tailwindcss", "postcss", "autoprefixer"]
+        },
+        {
+            "id": "setup-testing",
+            "description": "Setting up testing environment",
+            "type": "dependencies",
+            "path": "./{{ project_name }}",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "features",
+                        "operator": "in",
+                        "value": "testing"
+                    }
+                ]
+            },
+            "dev_dependencies": [
+                "@testing-library/react",
+                "@testing-library/jest-dom",
+                "@testing-library/user-event",
+                "vitest",
+                "jsdom"
+            ]
+        },
+        {
+            "id": "setup-api-rest",
+            "description": "Setting up REST API integration",
+            "type": "dependencies",
+            "path": "./{{ project_name }}",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "api_integration",
+                        "operator": "equals",
+                        "value": "rest"
+                    }
+                ]
+            },
+            "dependencies": ["axios"]
+        },
+        {
+            "id": "setup-api-graphql",
+            "description": "Setting up GraphQL integration",
+            "type": "dependencies",
+            "path": "./{{ project_name }}",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "api_integration",
+                        "operator": "equals",
+                        "value": "graphql"
+                    }
+                ]
+            },
+            "dependencies": [
+                "@apollo/client",
+                "graphql"
+            ]
+        },
+        {
+            "id": "create-src-structure",
+            "description": "Creating source directory structure",
+            "type": "directory",
+            "path": "./{{ project_name }}/src/components"
+        },
+        {
+            "id": "create-pages-dir",
+            "description": "Creating pages directory",
+            "type": "directory",
+            "path": "./{{ project_name }}/src/pages",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "features",
+                        "operator": "in",
+                        "value": "router"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "create-store-dir",
+            "description": "Creating Redux store directory",
+            "type": "directory",
+            "path": "./{{ project_name }}/src/store",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "features",
+                        "operator": "in",
+                        "value": "state-management"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "download-eslint-config",
+            "description": "Downloading ESLint configuration",
+            "type": "download",
+            "url": "https://raw.githubusercontent.com/itsparser/scaf/main/templates/react/.eslintrc.json",
+            "path": "./{{ project_name }}/.eslintrc.json"
+        },
+        {
+            "id": "setup-github-actions",
+            "description": "Setting up GitHub Actions",
+            "type": "copy",
+            "source": "templates/react/github-actions",
+            "path": "./{{ project_name }}/.github/workflows",
+            "conditions": {
+                "operator": "and",
+                "conditions": [
+                    {
+                        "field": "features",
+                        "operator": "in",
+                        "value": "ci-cd"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "modify-readme",
+            "description": "Updating README.md",
+            "type": "modify",
+            "path": "./{{ project_name }}/README.md",
+            "modification_type": "append",
+            "content": "\n## Features\n\nThis project includes:\n{{ #features }}\n- {{ . }}\n{{ /features }}\n\n## Getting Started\n\n```bash\n{{ package_manager }} install\n{{ package_manager }} run dev\n```"
+        }
+    ]
+}
