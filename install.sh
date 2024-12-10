@@ -57,8 +57,6 @@ if [ "$VERSION" == "latest" ]; then
     fi
 fi
 
-VERSION="v0.1.2-rc003"
-
 # Construct the download URL for the artifact
 ARTIFACT_URL="https://github.com/$REPO/releases/download/$VERSION/scaf-${ARCH}-${TARGET}.${FILE_EXT}"
 
