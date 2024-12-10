@@ -1,5 +1,6 @@
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use reqwest::Url;
 use tracing::{info};
 use crate::model::Template;
 use crate::utils::init_logger;
@@ -14,6 +15,8 @@ const BANNER: &str = r#"
 │            Version: 0.1.0                │
 ╰──────────────────────────────────────────╯
 "#;
+
+const BASE_URL: String = std::env::var("BASE_URL").unwrap_or("https://scaf.pages.dev".to_string());
 
 pub(crate) fn bootstrap_cli() {
     init_logger();
@@ -47,7 +50,17 @@ impl Cli {
                     std::fs::read_to_string(&template)
                         .context("Failed to read template file")?
                 } else {
-                    reqwest::get(&template)
+                    let url: Url;
+                    if template.starts_with("http") {
+                        url = Url::parse(&template)?;
+                    } else if !template.contains("/") {
+                        url = Url::parse(&format!("{}/api/scaf/{}", BASE_URL, template))?;
+                    } else if template.split("/").collect().count() == 2 {
+                        url = Url::parse(&format!("{}/api/{}", BASE_URL, template))?;
+                    } else {
+                        anyhow::bail!("Invalid template URL")
+                    }
+                    reqwest::get(&url)
                         .await?
                         .text()
                         .await?
@@ -60,9 +73,9 @@ impl Cli {
                 let (executed_steps, skipped_steps) = temp.execute(&args_values).await?;
 
                 println!("\n──────────────────────────────── Result ────────────────────────────");
-                println!("     ✨ Project scaffolded successfully!  ");
-                println!("     📊 Executed: {}/{} steps             ", executed_steps, temp.steps.len());
-                println!("     ⏭️  Skipped: {} steps                ", skipped_steps);
+                println!(" ✨ Project scaffolded successfully!  ");
+                println!(" 📊 Executed: {}/{} steps             ", executed_steps, temp.steps.len());
+                println!(" ⏭️  Skipped: {} steps                ", skipped_steps);
                 println!("────────────────────────────────────────────────────────────────────\n");
             }
         }
