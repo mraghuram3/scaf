@@ -36,7 +36,7 @@ pub struct Template {
 }
 
 impl Template {
-    pub(crate) async fn collect_arguments(&self) -> anyhow::Result<HashMap<String, String>> {
+    pub async fn collect_arguments(&self) -> anyhow::Result<HashMap<String, String>> {
         let mut args_values = HashMap::new();
         let mut groups = HashMap::new();
         for arg in &self.args {
@@ -72,7 +72,7 @@ impl Template {
         }
         Ok(args_values)
     }
-    pub(crate) async fn execute(&self, args_values: &HashMap<String, String>) -> anyhow::Result<(usize, usize)> {
+    pub async fn execute(&self, args_values: &HashMap<String, String>) -> anyhow::Result<(usize, usize)> {
         let mut executed_steps = 0;
         let mut skipped_steps = 0;
         let total_steps = self.steps.len();

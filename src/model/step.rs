@@ -1,12 +1,9 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::process::Stdio;
-use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use tracing::{error, debug};
 use crate::utils::replace_args;
 use tokio::process::Command;
-use tokio::time::timeout;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TemplateStep {
@@ -120,7 +117,7 @@ pub enum StepType {
     Download,
     Command,
     Git,
-    // Modify,
+    Modify,
     // Template,
     // Copy,
     // Dependencies,
@@ -140,7 +137,7 @@ pub enum ModificationType {
 
 
 impl TemplateStep {
-    pub(crate) fn check_condition(&self, args: &HashMap<String, String>) -> bool {
+    pub fn check_condition(&self, args: &HashMap<String, String>) -> bool {
         if let Some(conditions) = &self.conditions {
             conditions.evaluate(args)
         } else {
@@ -148,21 +145,100 @@ impl TemplateStep {
         }
     }
 
-    pub(crate) async fn execute(&self, args_values: &HashMap<String, String>) -> anyhow::Result<()> {
+    pub async fn execute(&self, args_values: &HashMap<String, String>) -> anyhow::Result<()> {
         let path = replace_args(&self.path, args_values);
         let path = PathBuf::from(path);
 
         match self.step_type {
             StepType::Directory => self.create_dir(&path).await?,
-            StepType::File => self.modify_file(&path, args_values).await?,
+            StepType::File => self.add_file(&path, args_values).await?,
             StepType::Download => self.download_file(&path, args_values).await?,
             StepType::Command => self.execute_command(args_values).await?,
             StepType::Git => self.git_command(&path).await?,
-            // StepType::Modify => {}
+            StepType::Modify => self.modify_file(&path, args_values).await?,
             // StepType::Template => {}
             // StepType::Copy => {}
             // StepType::Dependencies => {}
         }
+        Ok(())
+    }
+
+    pub(crate) async fn modify_file(&self, path: &PathBuf,
+                                    args_values: &HashMap<String, String>)
+        -> anyhow::Result<()> {
+        let content = replace_args(&self.content.as_ref().unwrap_or(&String::new()), args_values);
+        let file_content = if tokio::fs::try_exists(path).await? {
+            tokio::fs::read_to_string(path).await?
+        } else {
+            String::new()
+        };
+
+        let lines: Vec<&str> = file_content.lines().collect();
+        let mut new_content = Vec::new();
+
+        if let Some(modification_type) = &self.modification_type {
+
+            match modification_type {
+                ModificationType::Append => {
+                    new_content.extend(lines.iter().map(|&s| s.to_string()));
+                    if !file_content.is_empty() {
+                        new_content.push(String::new()); // Add newline before appending
+                    }
+                    new_content.push(content.to_string());
+                },
+                ModificationType::Prepend => {
+                    new_content.push(content.to_string());
+                    if !file_content.is_empty() {
+                        new_content.push(String::new()); // Add newline after prepending
+                    }
+                    new_content.extend(lines.iter().map(|&s| s.to_string()));
+                },
+                ModificationType::Replace => {
+                    if let Some(line_num) = self.line_number {
+                        for (i, line) in lines.iter().enumerate() {
+                            if i + 1 == line_num {
+                                new_content.push(content.to_string());
+                            } else {
+                                new_content.push(line.to_string());
+                            }
+                        }
+                    } else {
+                        // If no line number specified, replace entire file
+                        new_content.push(content.to_string());
+                    }
+                },
+                ModificationType::InsertAfter => {
+                    if let Some(line_num) = self.line_number {
+                        for (i, line) in lines.iter().enumerate() {
+                            new_content.push(line.to_string());
+                            if i + 1 == line_num {
+                                new_content.push(content.to_string());
+                            }
+                        }
+                    } else {
+                        new_content.extend(lines.iter().map(|&s| s.to_string()));
+                        new_content.push(content.to_string());
+                    }
+                },
+                ModificationType::InsertBefore => {
+                    if let Some(line_num) = self.line_number {
+                        for (i, line) in lines.iter().enumerate() {
+                            if i + 1 == line_num {
+                                new_content.push(content.to_string());
+                            }
+                            new_content.push(line.to_string());
+                        }
+                    } else {
+                        new_content.push(content.to_string());
+                        new_content.extend(lines.iter().map(|&s| s.to_string()));
+                    }
+                },
+            }
+
+
+        }
+
+        tokio::fs::write(path, new_content.join("\n")).await?;
         Ok(())
     }
 
@@ -172,7 +248,7 @@ impl TemplateStep {
         tokio::fs::create_dir_all(path).await
             .map_err(|_| anyhow::Error::msg("Failed to create directory"))
     }
-    pub(crate) async fn modify_file(&self, path: &PathBuf,
+    pub(crate) async fn add_file(&self, path: &PathBuf,
                                     args_values: &HashMap<String, String>)
         -> anyhow::Result<()> {
         if let Some(content) = &self.content {
@@ -208,7 +284,6 @@ impl TemplateStep {
             let output = Command::new("sh")
                 .arg("-c")
                 .arg(&command)
-                // .stdin(Stdio::null())
                 .output()
                 .await?;
             if !output.status.success() {
@@ -381,80 +456,80 @@ impl TemplateStep {
 //     Ok(())
 // }
 
-
-#[allow(dead_code)]
-async fn modify_file(
-    path: &PathBuf,
-    content: &str,
-    line_number: Option<usize>,
-    modification_type: &ModificationType,
-) -> anyhow::Result<()> {
-    let file_content = if tokio::fs::try_exists(path).await? {
-        tokio::fs::read_to_string(path).await?
-    } else {
-        String::new()
-    };
-
-    let lines: Vec<&str> = file_content.lines().collect();
-    let mut new_content = Vec::new();
-
-    match modification_type {
-        ModificationType::Append => {
-            new_content.extend(lines.iter().map(|&s| s.to_string()));
-            if !file_content.is_empty() {
-                new_content.push(String::new()); // Add newline before appending
-            }
-            new_content.push(content.to_string());
-        },
-        ModificationType::Prepend => {
-            new_content.push(content.to_string());
-            if !file_content.is_empty() {
-                new_content.push(String::new()); // Add newline after prepending
-            }
-            new_content.extend(lines.iter().map(|&s| s.to_string()));
-        },
-        ModificationType::Replace => {
-            if let Some(line_num) = line_number {
-                for (i, line) in lines.iter().enumerate() {
-                    if i + 1 == line_num {
-                        new_content.push(content.to_string());
-                    } else {
-                        new_content.push(line.to_string());
-                    }
-                }
-            } else {
-                // If no line number specified, replace entire file
-                new_content.push(content.to_string());
-            }
-        },
-        ModificationType::InsertAfter => {
-            if let Some(line_num) = line_number {
-                for (i, line) in lines.iter().enumerate() {
-                    new_content.push(line.to_string());
-                    if i + 1 == line_num {
-                        new_content.push(content.to_string());
-                    }
-                }
-            } else {
-                new_content.extend(lines.iter().map(|&s| s.to_string()));
-                new_content.push(content.to_string());
-            }
-        },
-        ModificationType::InsertBefore => {
-            if let Some(line_num) = line_number {
-                for (i, line) in lines.iter().enumerate() {
-                    if i + 1 == line_num {
-                        new_content.push(content.to_string());
-                    }
-                    new_content.push(line.to_string());
-                }
-            } else {
-                new_content.push(content.to_string());
-                new_content.extend(lines.iter().map(|&s| s.to_string()));
-            }
-        },
-    }
-
-    tokio::fs::write(path, new_content.join("\n")).await?;
-    Ok(())
-}
+//
+// #[allow(dead_code)]
+// async fn modify_file(
+//     path: &PathBuf,
+//     content: &str,
+//     line_number: Option<usize>,
+//     modification_type: &ModificationType,
+// ) -> anyhow::Result<()> {
+//     let file_content = if tokio::fs::try_exists(path).await? {
+//         tokio::fs::read_to_string(path).await?
+//     } else {
+//         String::new()
+//     };
+//
+//     let lines: Vec<&str> = file_content.lines().collect();
+//     let mut new_content = Vec::new();
+//
+//     match modification_type {
+//         ModificationType::Append => {
+//             new_content.extend(lines.iter().map(|&s| s.to_string()));
+//             if !file_content.is_empty() {
+//                 new_content.push(String::new()); // Add newline before appending
+//             }
+//             new_content.push(content.to_string());
+//         },
+//         ModificationType::Prepend => {
+//             new_content.push(content.to_string());
+//             if !file_content.is_empty() {
+//                 new_content.push(String::new()); // Add newline after prepending
+//             }
+//             new_content.extend(lines.iter().map(|&s| s.to_string()));
+//         },
+//         ModificationType::Replace => {
+//             if let Some(line_num) = line_number {
+//                 for (i, line) in lines.iter().enumerate() {
+//                     if i + 1 == line_num {
+//                         new_content.push(content.to_string());
+//                     } else {
+//                         new_content.push(line.to_string());
+//                     }
+//                 }
+//             } else {
+//                 // If no line number specified, replace entire file
+//                 new_content.push(content.to_string());
+//             }
+//         },
+//         ModificationType::InsertAfter => {
+//             if let Some(line_num) = line_number {
+//                 for (i, line) in lines.iter().enumerate() {
+//                     new_content.push(line.to_string());
+//                     if i + 1 == line_num {
+//                         new_content.push(content.to_string());
+//                     }
+//                 }
+//             } else {
+//                 new_content.extend(lines.iter().map(|&s| s.to_string()));
+//                 new_content.push(content.to_string());
+//             }
+//         },
+//         ModificationType::InsertBefore => {
+//             if let Some(line_num) = line_number {
+//                 for (i, line) in lines.iter().enumerate() {
+//                     if i + 1 == line_num {
+//                         new_content.push(content.to_string());
+//                     }
+//                     new_content.push(line.to_string());
+//                 }
+//             } else {
+//                 new_content.push(content.to_string());
+//                 new_content.extend(lines.iter().map(|&s| s.to_string()));
+//             }
+//         },
+//     }
+//
+//     tokio::fs::write(path, new_content.join("\n")).await?;
+//     Ok(())
+// }

@@ -17,3 +17,6 @@ regex = "1.10.2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
 indicatif = { version = "0.17.7", features = ["improved_unicode"] }
+
+[dev-dependencies]
+tempfile = "3.10.0"

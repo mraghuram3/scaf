@@ -1,3 +1,4 @@
+use std::string::ToString;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use reqwest::Url;
@@ -16,7 +17,7 @@ const BANNER: &str = r#"
 ╰──────────────────────────────────────────╯
 "#;
 
-const BASE_URL: String = std::env::var("BASE_URL").unwrap_or("https://scaf.pages.dev".to_string());
+const BASE_URL: &str = "https://scaf.pages.dev"; // std::env::var("BASE_URL").unwrap_or("https://scaf.pages.dev".to_string()).as_str();
 
 pub(crate) fn bootstrap_cli() {
     init_logger();
@@ -55,12 +56,12 @@ impl Cli {
                         url = Url::parse(&template)?;
                     } else if !template.contains("/") {
                         url = Url::parse(&format!("{}/api/scaf/{}", BASE_URL, template))?;
-                    } else if template.split("/").collect().count() == 2 {
+                    } else if template.split("/").count() == 2 {
                         url = Url::parse(&format!("{}/api/{}", BASE_URL, template))?;
                     } else {
                         anyhow::bail!("Invalid template URL")
                     }
-                    reqwest::get(&url)
+                    reqwest::get(&url.to_string())
                         .await?
                         .text()
                         .await?
