@@ -16,7 +16,7 @@ SCAF is a powerful CLI tool for scaffolding projects from templates. It supports
 ## Installation
 
 ```bash
-cargo install scaf
+curl -sSL https://github.com/itsparser/scaf/raw/main/install.sh | bash
 ```
 
 ## Usage
