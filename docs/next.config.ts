@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
+// @ts-ignore
 const nextConfig: NextConfig = {
-  /* config options here */
+    experimental: {
+        runtime: 'experimental-edge',
+    },
+    reactStrictMode: true,
+    swcMinify: true,
 };
 
 export default nextConfig;
