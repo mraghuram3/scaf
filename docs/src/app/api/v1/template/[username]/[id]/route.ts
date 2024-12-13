@@ -1,10 +1,11 @@
 import {getPageParams} from "@/utils/helper";
 import {TemplateService} from "@/services/template";
-import {NextResponse} from "next/server";
+import {NextResponse, type NextRequest} from "next/server";
+
 
 export async function GET(
-    request: Request,
-    { params }: { params: { username: string; id: string } }
+    request: NextRequest,
+    { params }: { params: Promise<{ username: string; id: string }> }
 ) {
     try {
         const { username, id } = await params;
@@ -21,8 +22,8 @@ export async function GET(
 }
 
 export async function DELETE(
-    request: Request,
-    { params }: { params: { username: string; id: string } }
+    request: NextRequest,
+    { params }: { params: Promise<{ username: string; id: string }> }
 ) {
     try {
         const { username, id } = await params;
@@ -43,7 +44,7 @@ export async function DELETE(
 
 export async function POST(
     request: Request,
-    { params }: { params: { username: string; id: string } }
+    { params }: { params: Promise<{ username: string; id: string }> }
 ) {
     try {
         const { username, id } = await params;
