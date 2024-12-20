@@ -1,19 +1,3 @@
-// export interface BTemplate {
-//   id: string;
-//   name: string;
-//   description: string;
-//   tags: string[];
-//   author: string;
-//   createdAt: Date;
-//   downloads?: number;
-// }
-//
-// export interface BTemplateFilters {
-//   search: string;
-//   tags: string[];
-//   showPrivate: boolean;
-// }
-
 export interface UserObject {
   _id?: string;  // uid from Firebase
   username: string;
@@ -23,12 +7,11 @@ export interface UserObject {
 }
 
 
-export interface Template {
+export interface CreateTemplate {
   _id?: string;
   name: string;
   version: string;
-  description: string;
-  author: string;
+  description?: string;
   language: string;
   createdBy: string;
   createdAt: Date;
@@ -36,6 +19,10 @@ export interface Template {
   updatedAt: Date;
   tags: string[];
   status: string;
+}
+
+export interface Template extends CreateTemplate{
+  downloads?: number;
   args: Argument[];
   steps: Step[];
 }
@@ -55,6 +42,7 @@ export interface Argument {
 }
 
 export interface ArgumentValue {
+  _id?: string;
   value: string;
   description: string;
 }
