@@ -15,7 +15,6 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 
 export function UserProfile() {
     const {user, signInWithGithub, logout} = useAuth();
-    console.log(user);
     if (!user) {
         return (<Link
             className={cn(
