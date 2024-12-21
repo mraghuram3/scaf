@@ -3,12 +3,13 @@ function decodeURL(url: string) {
 	return decodeURIComponent(url);
 }
 
-export default function Page({
+export default async function Page({
 	params,
 }: {
-	params: { templateId: string; username: string };
+	params: Promise<{ templateId: string; username: string }>;
 }) {
-	let userID = decodeURL(params.username);
+	let { templateId, username } = await params;
+	let userID = decodeURL(username);
 	if (userID.startsWith("@")) {
 		userID = userID.substring(1);
 	}
@@ -18,7 +19,7 @@ export default function Page({
 	return (
 		<div className="m-20 mt-24">
 			<h1>
-				My Page ---{userID}---- {params.templateId}
+				My Page ---{userID}---- {templateId}
 			</h1>
 			<div className="flex flex-col gap-4">
 				<span>Name:</span>
