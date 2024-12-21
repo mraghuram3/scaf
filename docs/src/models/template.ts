@@ -36,19 +36,15 @@ const TemplateSchema = new Schema<ITemplate>(
     },
     createdBy: {
         type: String,
-        required: true,
     },
     createdAt: {
       type: Date,
-      required: true,
     },
     updatedBy: {
       type: String,
-      required: true,
     },
     updatedAt: {
       type: Date,
-      required: true,
     },
     status: {
       type: String,
@@ -67,10 +63,7 @@ const TemplateSchema = new Schema<ITemplate>(
     },
   },
   {
-      timestamps: {
-          createdAt: 'created_at', // Use `created_at` to store the created date
-          updatedAt: 'updated_at' // and `updated_at` to store the last updated date
-      }
+      timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
   }
 );
 
