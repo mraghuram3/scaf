@@ -10,29 +10,6 @@ import { API } from "@/client/api";
 
 export function SiteHeader() {
   const [hamburgerMenuIsOpen, setHamburgerMenuIsOpen] = useState(false);
-  const { user, getIdToken } = useAuth();
-
-  const createTemplate = async () => {
-    try {
-      const token = await getIdToken();
-      const result = await API.createTemplate(
-        {
-          _id: "itsparser/newv9",
-          name: "testing template",
-        },
-        token
-      );
-
-      if (result.error) {
-        console.error("Failed to create template:", result.error);
-        return;
-      }
-
-      console.log("Template created:", result.data);
-    } catch (error) {
-      console.error("Error creating template:", error);
-    }
-  };
 
   useEffect(() => {
     const html = document.querySelector("html");
@@ -62,16 +39,6 @@ export function SiteHeader() {
             <Link className="mr-6 text-sm" href="/templates">
               Browse Templates
             </Link>
-            {user && (
-              <Button
-                onClick={createTemplate}
-                variant="outline"
-                size="sm"
-                className="mr-6"
-              >
-                Create Template
-              </Button>
-            )}
             <ThemeToggle className="mr-6 text-sm" />
             <UserProfile />
           </div>

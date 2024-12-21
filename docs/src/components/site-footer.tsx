@@ -8,11 +8,11 @@ const socials = [
     name: "Github",
     icon:  <GitHubLogoIcon className="h-4 w-4" />,
   },
-  {
-    href: "https://twitter.com/itsparser",
-    name: "Twitter",
-    icon: <TwitterLogoIcon className="h-4 w-4" />,
-  },
+  // {
+  //   href: "https://twitter.com/itsparser",
+  //   name: "Twitter",
+  //   icon: <TwitterLogoIcon className="h-4 w-4" />,
+  // },
 ];
 
 export function SiteFooter() {
