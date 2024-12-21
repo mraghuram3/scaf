@@ -62,16 +62,16 @@ export function SiteHeader() {
             <Link className="mr-6 text-sm" href="/templates">
               Browse Templates
             </Link>
-            {user && (
-              <Button
-                onClick={createTemplate}
-                variant="outline"
-                size="sm"
-                className="mr-6"
-              >
-                Create Template
-              </Button>
-            )}
+            {/*{user && (*/}
+            {/*  <Button*/}
+            {/*    onClick={createTemplate}*/}
+            {/*    variant="outline"*/}
+            {/*    size="sm"*/}
+            {/*    className="mr-6"*/}
+            {/*  >*/}
+            {/*    Create Template*/}
+            {/*  </Button>*/}
+            {/*)}*/}
             <ThemeToggle className="mr-6 text-sm" />
             <UserProfile />
           </div>
