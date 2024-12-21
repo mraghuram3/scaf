@@ -42,7 +42,7 @@ export class API {
             const headers = await this.getAuthHeaders();
             headers.append("Authorization", `Bearer ${token}`);
 
-            const response = await fetch("/api/template", {
+            const response = await fetch("/api/v1/template", {
                 method: "POST",
                 headers,
                 body: JSON.stringify(params),
