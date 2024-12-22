@@ -30,7 +30,7 @@ import {
 	SelectItem,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {API} from "@/client/api";
+import { API } from "@/client/api";
 
 const LANGUAGES = [
 	"python",
@@ -56,7 +56,7 @@ const formSchema = z.object({
 			/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/,
 			{
 				message: "Version must be a valid SemVer string",
-			},
+			}
 		),
 	description: z.string().min(10, {
 		message: "Description must be at least 10 characters.",
@@ -65,9 +65,9 @@ const formSchema = z.object({
 	language: z.string().min(1, {
 		message: "Please select a language.",
 	}),
-	tags: z.array(z.string()).min(1, {
-		message: "Please select at least one tag.",
-	}),
+	//   tags: z.array(z.string()).min(1, {
+	//     message: "Please select at least one tag.",
+	//   }),
 });
 
 export function CreateTemplate() {
@@ -75,9 +75,14 @@ export function CreateTemplate() {
 	// @ts-ignore
 	const userID = user?.auth.currentUser.reloadUserInfo.screenName;
 
-	const { handleSubmit, register, control, ...rest } = useForm<
-		z.infer<typeof formSchema>
-	>({
+	const {
+		handleSubmit,
+		register,
+		control,
+		trigger,
+		formState: { errors },
+		...rest
+	} = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			_id: "itsparsersd",
@@ -92,18 +97,26 @@ export function CreateTemplate() {
 	function onSubmit(values: z.infer<typeof formSchema>) {
 		console.log(values);
 		// Here you would typically send the data to an API
-		const token = ""; // Retrieve token from your auth context or however it's stored
+		let token = ""; // Retrieve token from your auth context or however it's stored
+		token = user?.accessToken;
 		API.createTemplate(
 			{
-				_id: values._id,
+				_id:
+				// biome-ignore lint/style/useTemplate: <explanation>
+					user?.reloadUserInfo?.screenName +
+					"/" +
+					values.name.replace(/[^a-zA-Z0-9]/g, "_"),
 				name: values.name,
 				description: values.description,
+				language: values.language,
+				tags: [values.language],
+				status: "draft"
 			},
-			token,
+			token
 		)
 			.then((response) => response.data)
 			.catch((error: unknown) =>
-				console.error("Error creating template:", error),
+				console.error("Error creating template:", error)
 			);
 	}
 
@@ -149,10 +162,20 @@ export function CreateTemplate() {
 					{...rest}
 				>
 					<form
-						onSubmit={handleSubmit((data) => {
-							console.log(data);
-							onSubmit(data);
-						})}
+						// onSubmit={handleSubmit((data) => {
+						// 	console.log(data, "check heeere");
+						// 	onSubmit(data);
+						// })}
+						onSubmit={(e) => {
+							e.preventDefault();
+							trigger();
+							console.log(errors);
+							if (Object.keys(errors).length === 0) {
+								const formData = rest.getValues();
+								console.log("form data", formData);
+								onSubmit(formData);
+							}
+						}}
 						className="space-y-4 w-full max-w-md"
 					>
 						<FormField

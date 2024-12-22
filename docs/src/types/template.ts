@@ -1,30 +1,52 @@
 export interface UserObject {
-  _id?: string;  // uid from Firebase
+  _id?: string; // uid from Firebase
   username: string;
   email: string;
   displayName?: string;
   photoURL?: string;
 }
 
+export enum Language {
+  Python = "python",
+  JavaScript = "javascript",
+  TypeScript = "typescript",
+  Go = "go",
+  Rust = "rust",
+  Shell = "shell",
+  CSharp = "csharp",
+  Java = "java",
+  C = "c",
+}
+
+export enum Status {
+  Draft = "draft",
+  Published = "published",
+  Archived = "archived",
+}
 
 export interface CreateTemplate {
   _id?: string;
   name: string;
   version: string;
   description?: string;
-  language: string;
+  language: Language;
   createdBy: string;
   createdAt: Date;
   updatedBy: string;
   updatedAt: Date;
   tags: string[];
-  status: string;
+  status: Status;
 }
 
-export interface Template extends CreateTemplate{
+export interface Template extends CreateTemplate {
   downloads?: number;
   args: Argument[];
   steps: Step[];
+}
+
+export enum ArgumentType {
+  String = "string",
+  Enum = "enum",
 }
 
 export interface Argument {
@@ -32,7 +54,7 @@ export interface Argument {
   name: string;
   key: string;
   description: string;
-  type: string;
+  type: ArgumentType;
   default?: string;
   required: boolean;
   pattern?: string;

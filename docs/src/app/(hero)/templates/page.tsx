@@ -28,7 +28,7 @@ export default function Page() {
 
     const [templates, setTemplates] = useState<Template[]>([]);
     useEffect(() => {
-        fetch('/api/v1/template')
+        fetch('/api/v1/template?limit=100')
             .then((res) => res.json())
             .then((data: PaginatedResponse<Template>) => {
                 setTemplates(data.data);
