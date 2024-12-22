@@ -269,7 +269,26 @@ export default function TemplatePage({ params }: PageProps) {
           </CardHeader>
           <CardContent>
             <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-              {JSON.stringify(template.args, null, 2)}
+              {/* {JSON.stringify(template.args, null, 2)} */}
+              {template?.args?.map((arg) => {
+                return (
+                  <div key={arg.key}>
+                    <p>{arg?.name}</p>
+                    <p>{arg?.description}</p>
+                    <p>{arg?.type}</p>
+                    <p>{arg?.default}</p>
+                    <p>{arg?.required}</p>
+                    <p>{arg?.pattern}</p>
+                    <ul>
+                      {arg?.values?.map((value) => (
+                        <li>
+                          {value?.value} , {value?.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
             </pre>
           </CardContent>
         </Card>
@@ -279,7 +298,27 @@ export default function TemplatePage({ params }: PageProps) {
           </CardHeader>
           <CardContent>
             <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
-              {JSON.stringify(template.steps, null, 2)}
+              {/* {JSON.stringify(template.steps, null, 2)} */}
+              {template?.steps?.map((step) => {
+                return (
+                  <div key={step.id}>
+                    <p>{step?.description}</p>
+                    <p>{step?.type}</p>
+                    <p>{step?.path}</p>
+                    <p>{step?.content}</p>
+                    <p>{step?.conditions?.operator}</p>
+                    <ul>
+                      {step?.conditions?.conditions?.map((condition) => (
+                        <li>
+                          {condition?.field} , {condition?.operator} ,{" "}
+                          {condition?.value}
+                        </li>
+                      ))}
+                    </ul>
+                    <p>{step?.url}</p>
+                  </div>
+                );
+              })}
             </pre>
           </CardContent>
         </Card>
