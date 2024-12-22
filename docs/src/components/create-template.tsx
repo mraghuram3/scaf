@@ -109,8 +109,8 @@ export function CreateTemplate() {
         name: values.name,
         description: values.description,
 		language: values.language,
-		tags: [],
-		status: ""
+		tags: [values.language],
+		status: "draft"
       },
       token
     )
